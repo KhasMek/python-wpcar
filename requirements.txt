@@ -1,0 +1,5 @@
+colorama
+pyshark
+pyyaml
+tqdm
+xlsxwriter

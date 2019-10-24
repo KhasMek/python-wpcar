@@ -1,0 +1,51 @@
+# This can be a single file, or path to directory
+pcap_path: 'pcap.pcap'
+
+logging:
+  console:
+    level: 'INFO'
+  file:
+    level: 'DEBUG'
+    filename: 'wpcar.log'
+
+parse_pcap: True
+display_filter: 'wlan'
+reports:
+  csv: 'report.csv'
+  json: 'report.json'
+  xlsx: 'report.xlsx'
+
+in_scope_networks:
+  - Network_01
+  - Network_02
+
+merge_blacklist:
+  - '00'
+
+wordlist_path: /opt/SecLists/Passwords/Leaked-Databases/rockyou-75.txt
+
+aircrack-ng:
+  enabled: True
+  path: 'aircrack-ng'
+  # This needs to be a list of args
+  args:
+
+hashcat:
+  enabled: True
+  hashcat_path: 'hashcat'
+  cap2hccapx_path: 'cap2hccapx.bin'
+  # This needs to be a list of args
+  hashcat_args:
+  hash_modes:
+    - 2500
+    - 2501
+    - 16800
+    - 16801
+  rules:
+    - '/usr/local/share/doc/hashcat/rules/rockyou-30000.rule'
+    - '/usr/local/share/doc/hashcat/rules/d3ad0ne.rule'
+    - '/usr/local/share/doc/hashcat/rules/dive.rule'
+  mask_attacks:
+    - '/usr/local/share/doc/hashcat/masks/rockyou-1-60.hcmask'
+  # Not currently supported, coming soon.
+  # combo_attack:
