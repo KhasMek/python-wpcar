@@ -101,6 +101,10 @@ def pcapng_to_pcap(infile, outfile=tempfile.NamedTemporaryFile().name):
 
 
 def get_broadcast_stats(pkt):
+    ssid = ''
+    channel = ''
+    ssid_hidden = True
+    encryption = None
     if int(pkt.wlan.fc_type) is 0:
         if int(pkt.wlan.fc_subtype) is 8:
             bssid = str(pkt.wlan.bssid)
