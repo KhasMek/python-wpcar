@@ -102,25 +102,28 @@ def pcapng_to_pcap(infile, outfile=tempfile.NamedTemporaryFile().name):
 
 def get_broadcast_stats(pkt):
     ssid = ''
-    channel = ''
+    channel = '0'
     ssid_hidden = True
     encryption = None
-    if int(pkt.wlan.fc_type) is 0:
-        if int(pkt.wlan.fc_subtype) is 8:
+    if int(pkt.wlan.fc_type) == 0:
+        if int(pkt.wlan.fc_subtype) == 8:
             bssid = str(pkt.wlan.bssid)
             for layer in pkt.layers:
-                if 'ssid' in layer.field_names:
-                    ssid = layer.ssid
-                if 'ds_current_channel' in layer.field_names:
-                    channel = int(layer.ds_current_channel)
-                if 'fixed_capabilities_privacy' in layer.field_names:
-                    if int(layer.fixed_capabilities_privacy) is 0:
+                if 'wlan_ssid' in layer.field_names:
+                    logger.debug("SSID: %s", layer.wlan_ssid)
+                    ssid = layer.wlan_ssid
+                if 'wlan_ds_current_channel' in layer.field_names:
+                    logger.debug("Channel: %s", layer.wlan_ds_current_channel)
+                    channel = int(layer.wlan_ds_current_channel)
+                if 'wlan_fixed_capabilities_privacy' in layer.field_names:
+                    logger.debug("Encryption: %s", layer.wlan_fixed_capabilities_privacy)
+                    if int(layer.wlan_fixed_capabilities_privacy) == 0:
                         encryption = None
                     else:
                         encryption = get_encryption(pkt)
             if ssid.startswith("SSID:"):
                 ssid = ''
-            if ssid:
+            if ssid != '':
                 ssid_hidden = False
             else:
                 ssid_hidden = True
@@ -136,8 +139,8 @@ def get_encryption(pkt):
     cipher = ''
     auth = ''
     for layer in pkt.layers:
-        if 'rsn_pcs_list' in layer.field_names:
-            pcs = str(' '.join(re.findall(r'(AES \(CCM\)|TKIP)', layer.rsn_pcs_list)))
+        if 'wlan_rsn_pcs_list' in layer.field_names:
+            pcs = str(' '.join(re.findall(r'(AES \(CCM\)|TKIP)', layer.wlan_rsn_pcs_list)))
             privacy = pcs.replace('AES (CCM)', 'CCMP')
             if "CCMP" and "TKIP" in privacy:
                 cipher = "WPA2 WPA"
@@ -145,9 +148,9 @@ def get_encryption(pkt):
                 cipher = "WPA2"
             elif "TKIP" in privacy:
                 cipher = "WPA"
-        if 'rsn_akms_list' in layer.field_names:
+        if 'wlan_rsn_akms_list' in layer.field_names:
             # TODO: I need to test this more for other suites but it seems good.
-            akms = str(' '.join(re.findall(r'PSK', layer.rsn_akms_list)))
+            akms = str(' '.join(re.findall(r'PSK', layer.wlan_rsn_akms_list)))
             if akms:
                 auth = akms
             else:
@@ -156,7 +159,7 @@ def get_encryption(pkt):
     # Could use some smrtr logic
     if encryption == '++':
         for layer in pkt.layers:
-            if 'fixed_capabilities_privacy' in layer.field_names and int(layer.fixed_capabilities_privacy) is 1:
+            if 'wlan_fixed_capabilities_privacy' in layer.field_names and int(layer.wlan_fixed_capabilities_privacy) == 1:
                 encryption = str("WEP")
     return encryption
 
