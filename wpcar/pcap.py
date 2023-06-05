@@ -117,10 +117,11 @@ def get_broadcast_stats(pkt):
             for layer in pkt.layers:
                 if 'wlan_ssid' in layer.field_names:
                     ssid = layer.wlan_ssid
+                    logger.debug("SSID Before: %s", str(ssid))
                     if is_hex_colon(ssid):
                         ssid = ssid.replace(':', '')
                         bytes_data = binascii.unhexlify(ssid)
-                        ssid = bytes_data.decode('ascii')
+                        ssid = bytes_data.decode('ascii', errors='replace')
                     logger.debug("SSID: %s", str(ssid))
                 if 'wlan_ds_current_channel' in layer.field_names:
                     logger.debug("Channel: %s", layer.wlan_ds_current_channel)
