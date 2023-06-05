@@ -14,7 +14,7 @@ logger = logging.getLogger('root')
 
 def write_csv(broadcast_stats_list, outfile):
     with open(outfile, "w") as f:
-        writer = csv.writer(f)
+        writer = csv.writer(f, quoting=csv.QUOTE_ALL, escapechar='\\')
         writer.writerow(["ssid", "bssid", "Hidden", "Channel", "Encryption"])
         writer.writerows(broadcast_stats_list)
 

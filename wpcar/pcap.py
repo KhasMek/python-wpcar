@@ -7,6 +7,7 @@ import re
 import subprocess
 import sys
 import tempfile
+import binascii
 
 from colorama import Fore, Style
 from datetime import datetime
@@ -99,6 +100,10 @@ def pcapng_to_pcap(infile, outfile=tempfile.NamedTemporaryFile().name):
         logger.debug("Pcap %s successfully created", outfile)
         return outfile
 
+def is_hex_colon(test):
+    pattern = r'^([0-9A-Fa-f]{2}:)*[0-9A-Fa-f]{2}$'
+    match = re.match(pattern, test)
+    return match is not None
 
 def get_broadcast_stats(pkt):
     ssid = ''
@@ -108,10 +113,15 @@ def get_broadcast_stats(pkt):
     if int(pkt.wlan.fc_type) == 0:
         if int(pkt.wlan.fc_subtype) == 8:
             bssid = str(pkt.wlan.bssid)
+            logger.debug("BSSID: %s", bssid)
             for layer in pkt.layers:
                 if 'wlan_ssid' in layer.field_names:
-                    logger.debug("SSID: %s", layer.wlan_ssid)
                     ssid = layer.wlan_ssid
+                    if is_hex_colon(ssid):
+                        ssid = ssid.replace(':', '')
+                        bytes_data = binascii.unhexlify(ssid)
+                        ssid = bytes_data.decode('ascii')
+                    logger.debug("SSID: %s", str(ssid))
                 if 'wlan_ds_current_channel' in layer.field_names:
                     logger.debug("Channel: %s", layer.wlan_ds_current_channel)
                     channel = int(layer.wlan_ds_current_channel)
@@ -121,6 +131,7 @@ def get_broadcast_stats(pkt):
                         encryption = None
                     else:
                         encryption = get_encryption(pkt)
+                    logger.debug("Encryption: %s", encryption)
             if ssid.startswith("SSID:"):
                 ssid = ''
             if ssid != '':
